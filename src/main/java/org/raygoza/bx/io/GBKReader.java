@@ -2,6 +2,7 @@ package org.raygoza.bx.io;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.StringReader;
 import java.util.Vector;
 
 import org.apache.commons.io.IOUtils;
@@ -11,6 +12,7 @@ import org.raygoza.bx.model.GbkModel;
 import org.raygoza.bx.model.KeyValue;
 import org.raygoza.bx.model.Reference;
 import org.raygoza.bx.model.Source;
+import org.raygoza.bx.parsers.GbkPropParser;
 
 public class GBKReader {
 
@@ -34,7 +36,8 @@ public class GBKReader {
 			
 			if(line.startsWith("FEATURES")) {
 				state="feat";
-				continue;
+				//continue;
+				//break;
 			}
 			
 			if(line.startsWith("BASE COUNT")){
@@ -77,9 +80,7 @@ public class GBKReader {
 					
 					KeyValue kv = getValue(rd, line);
 					model.put(kv.getKey(), kv.getValue());
-					model.addKey(kv.getKey());
-					
-					
+					model.addKey(kv.getKey());		
 				}
 				
 			
@@ -87,40 +88,13 @@ public class GBKReader {
 			
 			if(state.equals("feat")) {
 				
-				while(true) {
-					
-					GBKFeature feat= initFeature(line);
-					model.addFeature(feat);
-					
-					rd.mark(1000);
-					
-					line= rd.readLine();
-					
-					while(line.trim().startsWith("/")) {
-						
-						KeyValue kv = readFeatureProperty(rd,line);
-						feat.put(kv.getKey(), kv.getValue());
-						
-						rd.mark(1000);
-						line = rd.readLine();
-					}
 				
-					rd.reset();
-					//state="none";
-					
-					
-					
-					if(line.trim().startsWith("ORIGIN") || line.startsWith("BASE COUNT")) {
-						rd.reset();
-						break;
-					}
-					rd.mark(1000);
-					line= rd.readLine();
-					
-				}
+				GbkPropParser parser = new GbkPropParser(rd);
+				Vector<GBKFeature> fts = parser.Start();
 				
-			
+				System.out.println(fts.size());
 				
+				state="seq";
 				
 			}
 			
@@ -196,12 +170,12 @@ public class GBKReader {
 		}
 		
 		if(vals[0].contains("<")) {
-			feat.setExtends_left(true);
+		//	feat.setExtends_left(true);
 			vals[0]=vals[0].replace("<", "").trim();
 		}
 		
 		if(vals[1].contains(">")) {
-			feat.setExtends_right(true);
+			//feat.setExtends_right(true);
 			vals[1]=vals[1].replace(">", "").trim();
 		}
 		
@@ -247,18 +221,24 @@ public class GBKReader {
 		try {
 		String[] vals = line.split("=");
 		//System.out.println(vals[0]);
-		kv.setKey(vals[0].trim());
+		kv.setKey(vals[0].trim().toLowerCase());
+		String sep="";
+		
+		if(!kv.getKey().equals("translation")) {
+			sep=" ";
+		}
 		
 		if(vals[1].trim().endsWith("\"") || !vals[1].contains("\"")) {
 			vals[1]=vals[1].replace("\"", "");
+			
 			kv.setValue(vals[1].trim());
-			//rd.reset();
+		
 			return kv;
 		}else {
 			rd.mark(1000);
 			line = rd.readLine();
 			while(!line.endsWith("\"")) {
-				vals[1]+=line;
+				vals[1]+=sep+line;
 				if(line.trim().startsWith("/")) {
 					rd.reset();
 					break;
@@ -268,7 +248,7 @@ public class GBKReader {
 				
 			}
 			vals[1]+=line;
-			kv.setValue(vals[1].trim().replace("                      ", "").replace("\"", ""));
+			kv.setValue(vals[1].trim().replace("\"", "").trim());
 			
 		}
 		

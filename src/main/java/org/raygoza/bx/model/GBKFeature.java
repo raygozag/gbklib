@@ -10,14 +10,14 @@ public class GBKFeature implements Comparable<GBKFeature> {
 	String strand="+";
 	int start;
 	int end;
-	boolean extends_left=false;
-	boolean extends_right=false;
+	Vector<GbkLocation> locations;
 	Vector<String> keys;
 	
 	public GBKFeature(String type) {
 		properties= new HashMap<String, String>();
 		feat_type=type;
 		keys = new Vector<String>();
+		locations = new Vector<GbkLocation>();
 	}
 	
 	public void put(String key,String value) {
@@ -63,21 +63,7 @@ public class GBKFeature implements Comparable<GBKFeature> {
 		return strand;
 	}
 
-	public boolean isExtends_left() {
-		return extends_left;
-	}
 
-	public void setExtends_left(boolean extends_left) {
-		this.extends_left = extends_left;
-	}
-
-	public boolean isExtends_right() {
-		return extends_right;
-	}
-
-	public void setExtends_right(boolean extends_right) {
-		this.extends_right = extends_right;
-	}
 	
 	public void remove(String key) {
 		properties.remove(key);
@@ -92,5 +78,14 @@ public class GBKFeature implements Comparable<GBKFeature> {
 		
 		return 0;
 	}
+
+	public void addLocation(GbkLocation loc) {
+		locations.add(loc);
+	}
+	
+	public Vector<GbkLocation> locations(){
+		return locations;
+	}
+	
 	
 }

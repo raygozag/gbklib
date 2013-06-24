@@ -4,6 +4,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Vector;
 
+import org.raygoza.bx.exception.DuplicatedEntryException;
+
 public class GbkModel {
 
 	private HashMap<String, String> properties;
@@ -34,10 +36,13 @@ public class GbkModel {
 	}
 	
 	
-	public void addFeature(GBKFeature feat) {
+	public void addFeature(GBKFeature feat) throws Exception {
 		
+		if(features_hash.contains(feat.getStart()+""+feat.getEnd()+""+feat.getType())) {
+			throw new DuplicatedEntryException("The entry:  "+feat.getStart()+""+feat.getEnd()+""+feat.feat_type+" is duplicated!");
+		}
 		
-		
+		features_hash.add(feat.getStart()+""+feat.getEnd()+""+feat.getType());
 		featuresV.add(feat);
 		
 		if(featuresByType.containsKey(feat.getType())) {

@@ -1,0 +1,92 @@
+options{
+	STATIC=false;
+}
+PARSER_BEGIN(GbkPropParser)
+	class GbkPropParser{
+		public static void main(String[] args) throws ParseException, TokenMgrError {
+		 GbkPropParser parser = new GbkPropParser(System.in);
+		 parser.Start();
+		}
+	
+	}
+PARSER_END(GbkPropParser)
+
+
+TOKEN: { < NUMBER: (["0"-"9"])+ >}
+SKIP: { " " | "\n" | "\r" | "\r\n" | "\t" }
+TOKEN: { <SLASHX: " /">:LIT}
+TOKEN: { <EQUAL: "=">}
+<INTERVAL> SKIP: { " " | "\n" | "\r" | "\r\n" | "\t" }
+TOKEN: { <FEATURE_TYPE: "CDS" | "gene" | "misc_feature" | "source"|"STS">:INTERVAL}
+<LIT> TOKEN: { <WD: (["a"-"z", "A"-"Z"]| <NUMBER> |"_")+>:DEFAULT}
+TOKEN: {<STRING_LITERAL: "\"" ("\\" "\"" | (~["\"","\\",","]|<COMMA>))* "\""("\n")?>}
+TOKEN: {<COMMA:",">}
+<INTERVAL> TOKEN: { <PINTERVAL: ("<")?<NUMBER><RANGEOP>(">")?<NUMBER>("\n")? >:DEFAULT}
+<INTERVAL> TOKEN: { <NINTERVAL: "complement("(<PINTERVAL>|<OINTERVAL>)")" >:DEFAULT}
+<INTERVAL> TOKEN: { <OINTERVAL: "order("<NUMBER><RANGEOP><NUMBER>(<COMMA>(<NUMBER><RANGEOP><NUMBER>))*")" >:DEFAULT }
+TOKEN: { < RANGEOP: "..">}
+
+Vector<GBKFeature> Start():
+{
+  Token t;
+  Vector<GBKFeature> feats = new Vector<GBKFeature>();
+  GBKFeature gbkf=null;
+  boolean add=true;
+  KeyValue pair=null;
+}
+{
+   (t=<FEATURE_TYPE>
+	{ 
+	gbkf= new GBKFeature(t.image);
+	add=true;
+	}(t=<PINTERVAL>{
+	  String[] range = t.image.trim().replace("..","#").split("#");
+	  gbkf.setStrand("+");
+	  GBKLocation location = new GBKLocation();
+	  if(range[0].contains("<")){
+		location.setExtends_left(true);
+	  }
+	  if(range[0].contains(">")){
+		location.setExtends_right(true);
+	  }
+	  location.setStart(Long.parseLong(range[0]).replaceAll("<|>",""));
+	  location.setEnd(Long.parseLong(range[1]).replaceAll("<|>",""));
+	  gbkf.addLocation(location);
+	
+	}
+	|t=<NINTERVAL> {
+	
+		if(t.image.contains("ordered(")){
+			add=false;
+		}else{
+			String value = t.image.replace("complement(","").replace(")");
+			String[] range = t.image.trim().replace("..","#").split("#");
+			  gbkf.setStrand("-");
+			  GBKLocation location = new GBKLocation();
+			  if(range[0].contains("<")){
+				location.setExtends_left(true);
+			  }
+			  if(range[0].contains(">")){
+				location.setExtends_right(true);
+			  }
+			  location.setStart(Long.parseLong(range[0]).replaceAll("<|>",""));
+			  location.setEnd(Long.parseLong(range[1]).replaceAll("<|>",""));
+			  gbkf.addLocation(location);
+		}
+	
+	}
+	|<OINTERVAL>{
+	 add=false;
+	})
+   (<SLASHX>t=<WD>
+  { 
+	pair = new KeyValue();
+	pair.setKey(t.image);
+	}<EQUAL>(t=<STRING_LITERAL>|t=<NUMBER>){pair.setValue(t.image.replace("\"","")); gbkf.put(pair.getKey(),pair.getValue());})+ {
+		if(add==true){
+			feats.add(gbkf);
+		}
+	})+<EOF>
+
+
+}

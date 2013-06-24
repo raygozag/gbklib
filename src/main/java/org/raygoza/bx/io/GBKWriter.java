@@ -6,6 +6,7 @@ import java.io.FileWriter;
 import java.io.StringReader;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.StringTokenizer;
 import java.util.Vector;
 
 import org.apache.commons.lang.StringUtils;
@@ -15,6 +16,17 @@ import org.raygoza.bx.model.Reference;
 
 public class GBKWriter {
 
+	private Vector<String> stringfeatures;
+	
+	public GBKWriter() {
+		stringfeatures = new Vector<String>();
+		stringfeatures.add("product");
+		stringfeatures.add("note");
+		stringfeatures.add("protein_id");
+		stringfeatures.add("locus_tag");
+		stringfeatures.add("db_xref");
+	}
+	
 	
 	public void writeGbk(GbkModel model,String filename) throws Exception{
 		
@@ -60,13 +72,13 @@ public class GBKWriter {
 			String suffix="";
 			String start_prefix="";
 			String end_suffix="";
-			if(feature.isExtends_left()) {
+			/*if(feature.isExtends_left()) {
 				start_prefix="<";
 			}
 			
 			if(feature.isExtends_right()) {
 				end_suffix=">";
-			}
+			}*/
 			
 			if(feature.getStrand().equals("-")) {
 				prefix= "complement(";
@@ -74,10 +86,13 @@ public class GBKWriter {
 			}
 			wr.write("     "+StringUtils.rightPad(feature.getType(),16) +prefix+start_prefix+feature.getStart()+".."+feature.getEnd()+end_suffix+suffix+"\n");
 			Vector<String> keys = feature.getKeys();
-			
+			String value="";
 			for(String key: keys) {
-				String value = "                     "+formatProperty("/"+key+"=\""+feature.get(key)+"\"");
-				
+				if(!key.trim().toLowerCase().equals("translation")) {
+					value = formatAlphanumericProperty(key,feature.get(key));
+				}else {
+					value = StringUtils.repeat(" ", 21)+formatProperty("/"+key+"=\""+feature.get(key)+"\"");
+				}
 				
 				wr.write(value+"\n");
 			}
@@ -93,6 +108,29 @@ public class GBKWriter {
 		wr.close();
 	}
 	
+	private String formatAlphanumericProperty(String key, String property) {
+		String ret="";
+		String quote="";
+		
+		if(stringfeatures.contains(key)) {
+			quote="\"";
+		}
+		StringTokenizer tok = new StringTokenizer(property, " ");
+		String line = StringUtils.repeat(" ", 21)+"/"+key+"="+quote; 
+		while(tok.hasMoreTokens()) {
+			String token =tok.nextToken();
+			System.out.println(token);
+			if((line+" "+token).length()> 80) {
+				line += " "+token;
+				ret+= line+"\n";
+				line=StringUtils.repeat(" ", 21);
+			}else {
+				line+= " "+token;
+			}
+		}
+		ret+=line +quote;
+		return ret.replace("="+quote+" ", "="+quote);
+	}
 	
 	private static String formatSequence(String seq)  throws Exception{
 		String tmp = insertPeriodically(insertPeriodically(seq," ",10),"\n",66).replace(" \n", "\n");
