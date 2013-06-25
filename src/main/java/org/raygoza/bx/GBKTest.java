@@ -14,6 +14,7 @@ public class GBKTest {
 		GbkModel model = reader.readGbk(args[0]);
 		
 		
+		
 		//GBKWriter wr = new GBKWriter();
 		System.out.println("writing");
 		//wr.writeGbk(model, args[1]);

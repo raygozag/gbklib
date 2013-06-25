@@ -92,6 +92,9 @@ public class GBKReader {
 				GbkPropParser parser = new GbkPropParser(rd);
 				Vector<GBKFeature> fts = parser.Start();
 				
+				for(GBKFeature ft: fts) {
+					model.addFeature(ft);
+				}
 				System.out.println(fts.size());
 				
 				state="seq";

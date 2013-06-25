@@ -38,9 +38,9 @@ public class GbkModel {
 	
 	public void addFeature(GBKFeature feat) throws Exception {
 		
-		if(features_hash.contains(feat.getStart()+""+feat.getEnd()+""+feat.getType())) {
+		/*if(features_hash.contains(feat.getStart()+""+feat.getEnd()+""+feat.getType())) {
 			throw new DuplicatedEntryException("The entry:  "+feat.getStart()+""+feat.getEnd()+""+feat.feat_type+" is duplicated!");
-		}
+		}*/
 		
 		features_hash.add(feat.getStart()+""+feat.getEnd()+""+feat.getType());
 		featuresV.add(feat);

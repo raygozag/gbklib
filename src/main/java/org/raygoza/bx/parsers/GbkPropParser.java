@@ -21,7 +21,7 @@
     label_1:
     while (true) {
       t = jj_consume_token(FEATURE_TYPE);
-        gbkf= new GBKFeature(t.image);
+        gbkf= new GBKFeature(t.image.trim());
         add=true;
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case PINTERVAL:
@@ -41,10 +41,29 @@
         break;
       case NINTERVAL:
         t = jj_consume_token(NINTERVAL);
-                if(t.image.contains("order(")){
-                        add=false;
+            String value = t.image.replace("complement(","").replace(")","");
+                if(value.contains("order(")){
+                  value = value.replace("order(","").replace("..","#");
+                  String[] locations= value.split(",");
+                  gbkf.setStrand("-");
+
+                  for(int i=0; i < locations.length; i++){
+                     String[] range2x = locations[i].trim().split("#");
+                         GbkLocation location2 = new GbkLocation();
+                     if(range2x[0].contains("<")){
+                                location2.setExtends_left(true);
+                          }
+                          if(range2x[0].contains(">")){
+                                location2.setExtends_right(true);
+                          }
+                          location2.setStart(Long.parseLong(range2x[0].replaceAll("<|>","")));
+                          location2.setEnd(Long.parseLong(range2x[1].replaceAll("<|>","")));
+                          gbkf.addLocation(location2);
+                  }
+
+                        //add=false;
                 }else{
-                        String value = t.image.replace("complement(","").replace(")","");
+
                         String[] range2x = value.trim().replace("..","#").split("#");
                           gbkf.setStrand("-");
                           GbkLocation location2 = new GbkLocation();
@@ -87,7 +106,11 @@
           jj_consume_token(-1);
           throw new ParseException();
         }
-                                                pair.setValue(t.image.replace("\u005c"","")); gbkf.put(pair.getKey(),pair.getValue());
+                                                pair.setValue(t.image.replaceAll("\u005cn","").replaceAll("[ ]+"," ").replace("\u005c"",""));
+        if(pair.getValue().matches("[ |A|R|N|D|C|E|Q|G|H|I|L|K|M|F|P|S|T|W|Y|V]+")){
+          pair.setValue(pair.getValue().replace(" ",""));
+        }
+        gbkf.put(pair.getKey(),pair.getValue());
         switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
         case SLASHX:
           ;

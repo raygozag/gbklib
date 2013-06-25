@@ -1,11 +1,16 @@
 package org.raygoza.bx.model;
 
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Vector;
+
+import org.apache.commons.collections.MultiHashMap;
+import org.apache.commons.collections.MultiMap;
 
 public class GBKFeature implements Comparable<GBKFeature> {
 
-	HashMap<String, String> properties;
+	MultiMap properties;
 	String feat_type;
 	String strand="+";
 	int start;
@@ -14,7 +19,7 @@ public class GBKFeature implements Comparable<GBKFeature> {
 	Vector<String> keys;
 	
 	public GBKFeature(String type) {
-		properties= new HashMap<String, String>();
+		properties= new MultiHashMap();
 		feat_type=type;
 		keys = new Vector<String>();
 		locations = new Vector<GbkLocation>();
@@ -27,8 +32,8 @@ public class GBKFeature implements Comparable<GBKFeature> {
 		}
 	}
 	
-	public String get(String key) {
-		return properties.get(key);
+	public Vector<String> get(String key) {
+		return new Vector<String>((Collection)properties.get(key));
 	}
 	
 	public Vector<String> getKeys(){

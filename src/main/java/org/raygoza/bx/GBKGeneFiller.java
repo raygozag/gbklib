@@ -19,7 +19,7 @@ public class GBKGeneFiller {
 		
 		for(GBKFeature feat: proteins) {
 			
-			String tr = feat.get("translation");
+			String tr =null;// feat.get("translation").get(0);
 			
 			if(tr==null || tr.trim().equals("")) {
 				System.out.println(feat.get("protein_id"));

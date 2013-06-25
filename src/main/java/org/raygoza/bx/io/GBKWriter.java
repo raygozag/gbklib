@@ -89,7 +89,7 @@ public class GBKWriter {
 			String value="";
 			for(String key: keys) {
 				if(!key.trim().toLowerCase().equals("translation")) {
-					value = formatAlphanumericProperty(key,feature.get(key));
+				//	value = formatAlphanumericProperty(key,feature.get(key));
 				}else {
 					value = StringUtils.repeat(" ", 21)+formatProperty("/"+key+"=\""+feature.get(key)+"\"");
 				}
